@@ -1,0 +1,225 @@
+openapi: 3.0.1
+info:
+  title: Pasarela de comunicación autenticación Google.
+  contact:
+    name: Sebastián Salazar Molina
+    url: https://sebastian.cl
+    email: ssalazar@utem.cl
+  version: 1.0.0
+servers:
+  - url: https://api.sebastian.cl/UtemAuth/
+    description: Production
+paths:
+  /v1/tokens/validate:
+    post:
+      tags:
+        - token-rest
+      operationId: validateJwt
+      parameters:
+        - name: X-API-TOKEN
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: X-API-KEY
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JwtVO'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseVO'
+  /v1/tokens/request:
+    post:
+      tags:
+        - token-rest
+      operationId: requestToken
+      parameters:
+        - name: X-API-TOKEN
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: X-API-KEY
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestCode'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenVO'
+  /v1/tokens/{token}/jwt:
+    get:
+      tags:
+        - token-rest
+      operationId: getJwt
+      parameters:
+        - name: X-API-TOKEN
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: X-API-KEY
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JwtVO'
+  /v1/tokens/{token}/exists:
+    get:
+      tags:
+        - token-rest
+      operationId: exists
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseVO'
+  /v1/tokens/login:
+    get:
+      tags:
+        - token-rest
+      operationId: getToken
+      parameters:
+        - name: X-API-TOKEN
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: X-API-KEY
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenVO'
+   /v1/callback/verify:
+    get:
+      tags:
+        - callback-rest
+      operationId: verifyToken
+      parameters:
+        - name: code
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: state
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: error
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+    }
+components:
+  schemas:
+    JwtVO:
+      required:
+        - jwt
+      type: object
+      properties:
+        jwt:
+          type: string
+          description: JWT con la información del usuario autenticado
+        created:
+          type: string
+          description: Fecha de creación de la respuesta
+          format: date-time
+    ResponseVO:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          description: Flag que indica el estado de éxito
+          example: true
+          enum: [true, false]
+        message:
+          type: string
+          description: Mensaje de respuesta
+        created:
+          type: string
+          description: Fecha de creación de la respuesta
+          format: date-time
+    RequestCode:
+      required:
+        - failedUrl
+        - successUrl
+      type: object
+      properties:
+        successUrl:
+          type: string
+          description: Url de redirección en caso de una autenticación exitosa. A esta URL se le agregará un parámetro "jwt" con la información de la autenticación.
+        failedUrl:
+          type: string
+          description: Url de redirección en caso de una autenticación fallida.
+    TokenVO:
+      type: object
+      properties:
+        token:
+          type: string
+          description: Token generado por el sistema
+        redirectUrl:
+          type: string
+          description: Url de la redirección
+        created:
+          type: string
+          description: Fecha de creación del token
+          format: date-time
+
+securitySchemes:
+  Bearer Authentication:
+    type: http
+    scheme: bearer
+    bearerFormat: JWT
+
